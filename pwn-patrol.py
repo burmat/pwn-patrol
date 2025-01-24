@@ -8,14 +8,17 @@ import xlsxwriter
 
 # conduct a lookup based on an email
 def hibp_account_lookup(module, email_address):
-	headers = {'User-Agent': 'haveibeenpwned-api','hibp-api-key': API_KEY}
+	headers = {'User-Agent': 'pwn-patrol.py','hibp-api-key': API_KEY}
 	try:
 		url = f'https://haveibeenpwned.com/api/v3/{module}/{email_address}'
 		response = requests.request("GET", url, headers=headers)
 		if response.status_code == 200:
 			return response.json()
+		elif response.status_code == 401:
+			print('[!] Your API key didn\'t work. Exiting...')
+			exit(1)
 		else:
-			return None # the account was not found
+			return None # email was not found
 	except requests.RequestException as e:
 		print(e)
 		return False
@@ -26,13 +29,13 @@ def hibp_email_query(email):
 
 	breaches = hibp_account_lookup('breachedaccount', email)
 	if breaches:
-		print("[+] Discovered breaches:\n")
+		print("\n[+] Discovered Breaches:")
 		for breach in breaches:
 			print(breach['Name'])
 
 	pastes = hibp_account_lookup('pasteaccount', email)
 	if pastes:
-		print("[+] Discovered pastes:\n")
+		print("\n[+] Discovered Pastes:")
 		for paste in pastes:
 			if paste["Source"] == "Pastebin":
 				print(f'Pastebin: https://pastebin.com/{paste['Id']}')
@@ -41,9 +44,9 @@ def hibp_email_query(email):
 
 # when the user wants to use a list of emails
 def hibp_list_ingester():
-	EMAIL_COL		  = 0
-	BREACHES_COL	= 1
-	PASTES_COL		= 2
+	EMAIL_COL = 0
+	BREACHES_COL = 1
+	PASTES_COL = 2
 
 	questions = [
 		inquirer. Path('file', path_type=inquirer.Path.FILE, exists=True, message="List of emails filepath")
